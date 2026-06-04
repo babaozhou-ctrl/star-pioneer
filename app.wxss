@@ -1,0 +1,7 @@
+page {
+  background: #0a0c14;
+  color: #d8dce6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}

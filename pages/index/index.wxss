@@ -1,0 +1,653 @@
+.game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0c14;
+  overflow: hidden;
+  font-family: -apple-system, sans-serif;
+}
+
+.bg-img {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+}
+
+.bg-default {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  background: radial-gradient(ellipse at 50% 40%, #141828, #0a0c14);
+}
+
+.overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  background: linear-gradient(to top, rgba(10,12,20,.9) 0%, rgba(10,12,20,.35) 50%, rgba(10,12,20,.15) 100%);
+  pointer-events: none;
+}
+
+/* HUD */
+.hud {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 20rpx 24rpx 14rpx;
+  background: linear-gradient(to bottom, rgba(10,12,20,.92), rgba(10,12,20,.5) 80%, transparent);
+  border-bottom: 1rpx solid rgba(232,120,58,.12);
+}
+.hud-item { text-align: center; min-width: 70rpx; margin-left: 24rpx; }
+.hud-item:first-child { margin-left: 0; }
+.hud-label { font-size: 14rpx; color: #5a6178; letter-spacing: 3rpx; font-weight: 700; }
+.hud-val { font-size: 22rpx; font-weight: 900; color: #f0f2f8; letter-spacing: 1rpx; }
+.hud-val.stamina { color: #4caf80; }
+.hud-val.recover { color: #6b7394; font-size: 18rpx; }
+.hud-val.energy { color: #e8783a; }
+.hud-val.sanity { color: #4a8fc2; }
+
+/* 标题 */
+.title-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 30; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; padding: 80rpx 40rpx;
+}
+.title-deco { width: 120rpx; height: 4rpx; background: #e8783a; margin-bottom: 30rpx; }
+.title-text { font-size: 72rpx; font-weight: 900; color: #f0f2f8; letter-spacing: 20rpx; margin-bottom: 16rpx; text-shadow: 0 0 40rpx rgba(232,120,58,.3); }
+.title-line { width: 200rpx; height: 2rpx; background: linear-gradient(to right, transparent, #e8783a, transparent); margin-bottom: 16rpx; }
+.title-sub { font-size: 20rpx; color: #5a6178; letter-spacing: 10rpx; margin-bottom: 40rpx; }
+.title-hint { font-size: 22rpx; color: #6b7394; margin-bottom: 80rpx; line-height: 1.6; }
+.start-btn {
+  background: transparent !important; color: #e8783a !important;
+  border: 2rpx solid #e8783a !important; border-radius: 4rpx !important;
+  padding: 22rpx 100rpx !important; font-size: 28rpx !important;
+  font-weight: 700 !important; letter-spacing: 8rpx;
+}
+
+/* ===== 星图（散落式） ===== */
+.galaxy {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 15; overflow: hidden;
+}
+.galaxy-stars {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1; pointer-events: none;
+}
+.star-dot {
+  position: absolute;
+  width: 4rpx; height: 4rpx;
+  border-radius: 50%;
+  background: #f0f2f8;
+  animation: starTwinkle 2s ease-in-out infinite alternate;
+}
+@keyframes starTwinkle {
+  0% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+.galaxy-header {
+  position: relative; z-index: 3;
+  padding: 100rpx 0 0; text-align: center;
+}
+.galaxy-title { font-size: 40rpx; font-weight: 900; color: #f0f2f8; letter-spacing: 12rpx; text-shadow: 0 0 30rpx rgba(232,120,58,.2); }
+.galaxy-sub { font-size: 16rpx; color: #5a6178; letter-spacing: 8rpx; margin-top: 4rpx; }
+.galaxy-planets-scatter {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 2;
+}
+/* 星球轨道容器 */
+.planet-orbit {
+  position: absolute;
+  display: flex; flex-direction: column;
+  align-items: center;
+  z-index: 3;
+}
+.planet-orbit.locked { opacity: 0.35; }
+.planet-orbit:active { transform: scale(0.95); }
+/* 星球视觉容器：包裹星球+光晕，确保光晕精确定位 */
+.planet-visual {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+}
+.planet-sphere {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  border: 2rpx solid rgba(232,120,58,.25);
+  box-shadow: 0 0 30rpx rgba(232,120,58,.25);
+  animation: planetBreath 3s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+/* 光晕：基于planet-visual容器精确定位，居中于星球 */
+.planet-glow {
+  position: absolute;
+  top: 10rpx; left: 10rpx;
+  width: 180rpx; height: 180rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,120,58,.12) 0%, rgba(232,120,58,.03) 40%, transparent 70%);
+  animation: glowPulse 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes planetBreath {
+  0%, 100% { box-shadow: 0 0 20rpx rgba(232,120,58,.15); }
+  50% { box-shadow: 0 0 40rpx rgba(232,120,58,.4); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+.planet-label-s {
+  font-size: 24rpx; font-weight: 700; color: #f0f2f8;
+  letter-spacing: 4rpx; margin-top: 12rpx;
+  text-shadow: 0 0 16rpx rgba(232,120,58,.3);
+  position: relative; z-index: 3;
+}
+.planet-tag-s {
+  font-size: 16rpx; font-weight: 700; letter-spacing: 2rpx;
+  margin-top: 4rpx; padding: 2rpx 12rpx; border-radius: 2rpx;
+  position: relative; z-index: 3;
+}
+.planet-tag-s.available { color: #e8783a; background: rgba(232,120,58,.1); }
+.planet-tag-s.completed { color: #4caf80; background: rgba(76,175,128,.1); }
+.planet-tag-s.locked { color: #3a3f52; background: rgba(58,63,82,.1); }
+
+/* 传说按钮 - 左下角（避开胶囊） */
+.galaxy-lore-btn {
+  position: fixed;
+  bottom: 40rpx; left: 32rpx;
+  z-index: 25;
+  display: flex; align-items: center;
+  background: rgba(20,24,38,.9);
+  border: 1rpx solid rgba(212,168,70,.25);
+  border-radius: 6rpx;
+  padding: 14rpx 20rpx;
+}
+.galaxy-lore-btn:active { background: rgba(212,168,70,.1); }
+.lore-icon { font-size: 28rpx; margin-right: 8rpx; }
+.lore-count { font-size: 18rpx; color: #d4a846; font-weight: 700; letter-spacing: 2rpx; }
+
+/* ===== 星球详情（沉浸式） ===== */
+.planet-detail {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 35; overflow: hidden;
+}
+.planet-detail-bg {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(ellipse at 50% 45%, #141828 0%, #0a0c14 70%);
+}
+/* 星尘粒子 */
+.pd-dust {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1; pointer-events: none;
+}
+.pd-dust-dot {
+  position: absolute;
+  width: 3rpx; height: 3rpx;
+  border-radius: 50%;
+  background: rgba(232,120,58,.4);
+  animation: dustFloat 6s ease-in-out infinite alternate;
+}
+@keyframes dustFloat {
+  0% { opacity: 0.2; transform: translateY(0); }
+  100% { opacity: 0.8; transform: translateY(-20rpx); }
+}
+/* 标题区 - 左上角（避开右侧胶囊） */
+.pd-top {
+  position: absolute;
+  top: 110rpx; left: 40rpx;
+  z-index: 5;
+}
+.pd-planet-name {
+  font-size: 40rpx; font-weight: 900;
+  color: #f0f2f8; letter-spacing: 6rpx;
+  text-shadow: 0 0 30rpx rgba(232,120,58,.3);
+}
+.pd-planet-sub {
+  font-size: 18rpx; color: #5a6178;
+  letter-spacing: 6rpx; margin-top: 4rpx;
+}
+/* 旋转星球 + 光环 */
+.pd-center {
+  position: absolute;
+  top: 48%; left: 35%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+.pd-planet-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotateX(70deg);
+  width: 340rpx; height: 340rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(232,120,58,.15);
+  box-shadow: 0 0 20rpx rgba(232,120,58,.1);
+  animation: ringRotate 12s linear infinite;
+}
+@keyframes ringRotate {
+  from { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(0deg); }
+  to { transform: translate(-50%, -50%) rotateX(70deg) rotateZ(360deg); }
+}
+.pd-planet-img {
+  width: 240rpx; height: 240rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(232,120,58,.4);
+  box-shadow: 0 0 60rpx rgba(232,120,58,.3), 0 0 120rpx rgba(232,120,58,.1);
+  animation: pdBreath 4s ease-in-out infinite;
+  position: relative; z-index: 2;
+}
+@keyframes pdBreath {
+  0%, 100% { box-shadow: 0 0 60rpx rgba(232,120,58,.3), 0 0 120rpx rgba(232,120,58,.1); }
+  50% { box-shadow: 0 0 80rpx rgba(232,120,58,.5), 0 0 160rpx rgba(232,120,58,.2); }
+}
+.pd-planet-glow {
+  position: absolute;
+  top: -40rpx; left: -40rpx;
+  width: 320rpx; height: 320rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,120,58,.12) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+}
+/* 左侧信息面板（避开胶囊） */
+.pd-right-panel {
+  position: absolute;
+  top: 110rpx; left: 40rpx;
+  z-index: 5;
+  width: 220rpx;
+  margin-top: 120rpx;
+}
+.pd-section-title {
+  font-size: 16rpx; font-weight: 700;
+  color: #8890a8; letter-spacing: 4rpx;
+  border-left: 4rpx solid #4a8fc2;
+  padding-left: 12rpx;
+  margin-bottom: 16rpx;
+}
+.pd-status-item {
+  display: flex; justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+.pd-status-label { font-size: 18rpx; color: #6b7394; letter-spacing: 2rpx; }
+.pd-status-val { font-size: 18rpx; color: #4caf80; font-weight: 700; letter-spacing: 1rpx; }
+.pd-status-val.warn { color: #e8783a; }
+.pd-achieve-item {
+  display: flex; align-items: center;
+  margin-bottom: 10rpx;
+}
+.pd-achieve-star { font-size: 20rpx; color: #d4a846; margin-right: 8rpx; }
+.pd-achieve-text { font-size: 18rpx; color: #c0c4d0; letter-spacing: 1rpx; }
+.pd-achieve-hint { font-size: 16rpx; color: #5a6178; letter-spacing: 2rpx; }
+
+/* 右侧选项列表 - 屏幕右侧中间偏下（避开胶囊） */
+.pd-left-options {
+  position: absolute;
+  top: 42%;
+  right: 40rpx;
+  z-index: 5;
+  width: 240rpx;
+}
+.pd-option {
+  display: flex; align-items: center;
+  margin-bottom: 20rpx;
+  padding: 16rpx 24rpx;
+  background: rgba(20,24,38,.85);
+  border: 1rpx solid rgba(232,120,58,.2);
+  border-radius: 4rpx;
+}
+.pd-option:last-child { margin-bottom: 0; }
+.pd-option:active { background: rgba(232,120,58,.15); border-color: #e8783a; }
+.pd-option-arrow { font-size: 20rpx; color: #e8783a; font-weight: 700; margin-right: 10rpx; }
+.pd-option-text { font-size: 22rpx; color: #d8dce6; letter-spacing: 2rpx; }
+
+/* 返回按钮 - 底部左侧（远离胶囊） */
+.pd-close {
+  position: absolute;
+  bottom: 60rpx; left: 40rpx;
+  z-index: 5;
+  font-size: 20rpx; color: #8890a8;
+  letter-spacing: 2rpx;
+  padding: 12rpx 28rpx;
+  border: 1rpx solid rgba(255,255,255,.1);
+  border-radius: 4rpx;
+  background: rgba(10,12,20,.6);
+}
+.pd-close:active { color: #e8783a; border-color: #e8783a; }
+
+/* ===== 深空遗响 ===== */
+.lore-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 35; background: rgba(10,12,20,.97);
+  padding: 0 28rpx 32rpx; overflow-y: auto;
+}
+.lore-header {
+  padding: 110rpx 0 24rpx;
+  border-bottom: 1rpx solid rgba(212,168,70,.15);
+}
+.lore-title { font-size: 32rpx; font-weight: 900; color: #d4a846; letter-spacing: 4rpx; }
+.lore-sub { font-size: 16rpx; color: #5a6178; letter-spacing: 6rpx; margin-top: 4rpx; }
+.lore-close {
+  position: absolute; bottom: 50rpx; left: 28rpx;
+  font-size: 20rpx; color: #8890a8; letter-spacing: 2rpx;
+  padding: 12rpx 28rpx; border: 1rpx solid rgba(255,255,255,.1); border-radius: 4rpx;
+  background: rgba(10,12,20,.6);
+}
+.lore-empty { text-align: center; color: #5a6178; font-size: 22rpx; padding: 80rpx 0; line-height: 2; white-space: pre-line; }
+.lore-list { padding-top: 20rpx; }
+.lore-item {
+  display: flex; align-items: center;
+  padding: 20rpx 16rpx;
+  border-bottom: 1rpx solid rgba(255,255,255,.04);
+}
+.lore-item:active { background: rgba(212,168,70,.05); }
+.lore-planet-tag {
+  font-size: 16rpx; color: #6b7394; letter-spacing: 2rpx;
+  padding: 2rpx 10rpx; border: 1rpx solid rgba(255,255,255,.06);
+  border-radius: 2rpx; margin-right: 16rpx; white-space: nowrap;
+}
+.lore-item-title { flex: 1; font-size: 26rpx; color: #d8dce6; letter-spacing: 1rpx; }
+.lore-arrow { color: #d4a846; font-size: 24rpx; }
+.lore-detail { padding: 24rpx 8rpx; }
+.lore-detail-planet { font-size: 16rpx; color: #6b7394; letter-spacing: 3rpx; margin-bottom: 8rpx; }
+.lore-detail-title { font-size: 36rpx; font-weight: 900; color: #d4a846; letter-spacing: 4rpx; margin-bottom: 24rpx; }
+.lore-detail-text { font-size: 24rpx; color: #c0c4d0; line-height: 2; white-space: pre-line; }
+.lore-back-btn {
+  display: inline-block;
+  margin-top: 32rpx;
+  font-size: 20rpx; color: #8890a8;
+  letter-spacing: 2rpx;
+  padding: 10rpx 24rpx;
+  border: 1rpx solid rgba(255,255,255,.1);
+  border-radius: 4rpx;
+}
+
+/* 星球信息（已完成） */
+.planetinfo {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 15;
+}
+.bg-img-full {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh; z-index: 0;
+}
+.planetinfo-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%; z-index: 1;
+  background: rgba(10,12,20,.7);
+}
+.planetinfo-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; padding: 40rpx;
+}
+.planetinfo-status {
+  font-size: 20rpx; color: #4caf80; letter-spacing: 6rpx;
+  padding: 4rpx 20rpx; border: 1rpx solid rgba(76,175,128,.3);
+  border-radius: 2rpx; margin-bottom: 40rpx;
+}
+.planetinfo-actions { display: flex; }
+.action-btn {
+  background: transparent !important; color: #e8783a !important;
+  border: 2rpx solid #e8783a !important; border-radius: 4rpx !important;
+  padding: 18rpx 48rpx !important; font-size: 24rpx !important;
+  font-weight: 700 !important; letter-spacing: 3rpx;
+  margin-left: 20rpx;
+}
+.action-btn:first-child { margin-left: 0; }
+.action-btn.secondary {
+  color: #8890a8 !important; border-color: rgba(255,255,255,.15) !important;
+}
+
+/* 场景 */
+.scene {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 10; display: flex; flex-direction: column; justify-content: flex-end;
+}
+/* 双人对框立绘 */
+.char-left {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 70vh; width: auto;
+  z-index: 2;
+  transition: opacity .4s;
+  animation: charInLeft .6s ease forwards;
+}
+.char-right {
+  position: absolute;
+  bottom: 0; right: 20rpx;
+  height: 70vh; width: auto;
+  z-index: 2;
+  transition: opacity .4s;
+  animation: charIn .6s ease forwards;
+}
+.char-active { opacity: 1; }
+.char-dim { opacity: 0.35; }
+@keyframes charInLeft {
+  from { opacity: 0; transform: translateX(-40rpx); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes charIn {
+  from { opacity: 0; transform: translateY(40rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dlg-bar {
+  position: relative; z-index: 5;
+  padding: 24rpx 32rpx 32rpx;
+  background: linear-gradient(to top, rgba(10,12,20,.95) 60%, rgba(10,12,20,.7) 85%, transparent);
+}
+.dlg-name {
+  display: inline-block;
+  font-size: 20rpx; font-weight: 700; letter-spacing: 4rpx;
+  padding: 4rpx 16rpx; margin-bottom: 10rpx;
+  border-left: 4rpx solid #e8783a; color: #e8783a;
+}
+.dlg-name.np { border-left-color: #e8783a; color: #e8783a; }
+.dlg-name.nn { border-left-color: #4a8fc2; color: #4a8fc2; }
+.dlg-name.na { border-left-color: #d4a846; color: #d4a846; }
+.dlg-name.ns { border-left-color: #5a6178; color: #8890a8; }
+.dlg-text { font-size: 27rpx; line-height: 1.9; color: #d8dce6; white-space: pre-line; text-shadow: 0 2rpx 8rpx rgba(0,0,0,.8); }
+.dlg-hint { text-align: right; font-size: 18rpx; color: #5a6178; margin-top: 10rpx; letter-spacing: 2rpx; }
+.sci-box { margin: 14rpx 0 0; padding: 16rpx 20rpx; border-left: 4rpx solid #d4a846; background: rgba(212,168,70,.06); border-radius: 2rpx; }
+.sci-title { font-size: 20rpx; font-weight: 700; color: #d4a846; letter-spacing: 3rpx; margin-bottom: 6rpx; }
+.sci-text { font-size: 22rpx; line-height: 1.7; color: #8890a8; white-space: pre-line; }
+.ch-prompt { text-align: center; font-size: 18rpx; color: #5a6178; letter-spacing: 6rpx; padding: 24rpx 0 12rpx; }
+.ch-list { padding: 0 24rpx 40rpx; display: flex; flex-direction: column; }
+.ch-item {
+  display: flex; align-items: center;
+  background: rgba(16,20,34,.85);
+  border: 1rpx solid rgba(232,120,58,.15);
+  border-radius: 6rpx; overflow: hidden;
+  margin-bottom: 12rpx;
+}
+.ch-item:last-child { margin-bottom: 0; }
+.ch-item:active { background: rgba(232,120,58,.1); border-color: #e8783a; transform: scale(0.98); }
+.ch-order {
+  width: 56rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 20rpx; font-weight: 900; color: #e8783a;
+  background: rgba(232,120,58,.08); padding: 24rpx 0;
+  border-right: 1rpx solid rgba(232,120,58,.1);
+  align-self: stretch;
+}
+.ch-body { flex: 1; display: flex; justify-content: space-between; align-items: center; padding: 20rpx 24rpx; }
+.ch-text { font-size: 26rpx; color: #d8dce6; flex: 1; }
+.ch-cost { font-size: 20rpx; font-weight: 700; white-space: nowrap; margin-left: 16rpx; letter-spacing: 2rpx; }
+.cost-free { color: #5a6178; }
+.cost-high { color: #c44040; }
+.cost-low { color: #4caf80; }
+
+/* ===== 探索（沉浸式） ===== */
+.explore {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 15; overflow: hidden;
+}
+.explore-bg {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(ellipse at 30% 45%, #141828 0%, #0a0c14 70%);
+}
+.explore-dust {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1; pointer-events: none;
+}
+.explore-dust-dot {
+  position: absolute;
+  width: 3rpx; height: 3rpx;
+  border-radius: 50%;
+  background: rgba(232,120,58,.35);
+  animation: dustFloat 6s ease-in-out infinite alternate;
+}
+/* 扫描线 */
+.explore-scanline {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2rpx;
+  background: linear-gradient(to right, transparent 10%, rgba(232,120,58,.12) 50%, transparent 90%);
+  animation: scanline 5s linear infinite;
+  z-index: 2; pointer-events: none;
+}
+@keyframes scanline {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+/* 标题区 - 左上（避开右侧胶囊） */
+.explore-header {
+  position: absolute;
+  top: 160rpx; left: 36rpx;
+  z-index: 5;
+}
+.explore-name {
+  font-size: 36rpx; font-weight: 900;
+  color: #f0f2f8; letter-spacing: 6rpx;
+  text-shadow: 0 0 30rpx rgba(232,120,58,.25);
+}
+.explore-sta-bar {
+  position: absolute;
+  bottom: 100rpx; left: 0; right: 0;
+  z-index: 5;
+  text-align: center;
+  font-size: 20rpx; color: #4caf80;
+  letter-spacing: 4rpx; font-weight: 700;
+}
+/* 旋转星球 - 居中偏左 */
+.explore-center {
+  position: absolute;
+  top: 44%; left: 30%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+.explore-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotateX(70deg);
+  width: 280rpx; height: 280rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(232,120,58,.12);
+  box-shadow: 0 0 16rpx rgba(232,120,58,.08);
+  animation: ringRotate 12s linear infinite;
+}
+.explore-planet-img {
+  width: 200rpx; height: 200rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(232,120,58,.35);
+  box-shadow: 0 0 50rpx rgba(232,120,58,.25), 0 0 100rpx rgba(232,120,58,.08);
+  animation: pdBreath 4s ease-in-out infinite;
+  position: relative; z-index: 2;
+}
+.explore-glow {
+  position: absolute;
+  top: -30rpx; left: -30rpx;
+  width: 260rpx; height: 260rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,120,58,.1) 0%, transparent 60%);
+  pointer-events: none; z-index: 1;
+}
+/* 右侧探索选项（避开胶囊区） */
+.explore-opts {
+  position: absolute;
+  top: 36%; right: 28rpx;
+  z-index: 5; width: 270rpx;
+}
+.explore-opt {
+  display: flex; align-items: center;
+  margin-bottom: 14rpx;
+  padding: 16rpx 18rpx;
+  background: rgba(20,24,38,.85);
+  border: 1rpx solid rgba(232,120,58,.15);
+  border-left: 4rpx solid #e8783a;
+  border-radius: 4rpx;
+}
+.explore-opt:last-child { margin-bottom: 0; }
+.explore-opt.locked {
+  opacity: 0.4;
+  border-left-color: #3a3f52;
+}
+.explore-opt:active { background: rgba(232,120,58,.12); }
+.explore-opt-icon { font-size: 30rpx; margin-right: 12rpx; }
+.explore-opt-body { flex: 1; }
+.explore-opt-name { font-size: 22rpx; font-weight: 700; color: #f0f2f8; letter-spacing: 2rpx; }
+.explore-opt-desc { font-size: 15rpx; color: #6b7394; margin-top: 2rpx; letter-spacing: 1rpx; }
+.explore-opt-go { color: #e8783a; font-size: 22rpx; font-weight: 700; margin-left: 8rpx; }
+.explore-opt-lk { font-size: 13rpx; color: #3a3f52; letter-spacing: 3rpx; font-weight: 700; margin-left: 8rpx; }
+/* 返回按钮 - 底部左侧（远离胶囊） */
+.explore-back {
+  position: absolute;
+  bottom: 50rpx; left: 36rpx;
+  z-index: 5;
+  font-size: 20rpx; color: #8890a8;
+  letter-spacing: 2rpx;
+  padding: 12rpx 28rpx;
+  border: 1rpx solid rgba(255,255,255,.1);
+  border-radius: 4rpx;
+  background: rgba(10,12,20,.6);
+}
+.explore-back:active { color: #e8783a; border-color: #e8783a; }
+
+/* 结局 */
+.edg {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 60; background: rgba(10,12,20,.97);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 56rpx; text-align: center; overflow-y: auto;
+}
+.edg-label { font-size: 16rpx; letter-spacing: 10rpx; color: #5a6178; margin-bottom: 12rpx; }
+.edg-title { font-size: 44rpx; font-weight: 900; color: #e8783a; letter-spacing: 6rpx; margin-bottom: 28rpx; text-shadow: 0 0 30rpx rgba(232,120,58,.3); }
+.edg-text { font-size: 24rpx; color: #8890a8; line-height: 1.9; white-space: pre-line; max-width: 600rpx; margin: 0 auto 24rpx; }
+.edg-stats { display: flex; justify-content: center; margin: 16rpx 0; }
+.stat { text-align: center; margin-left: 48rpx; }
+.stat:first-child { margin-left: 0; }
+.stat-v { font-size: 36rpx; font-weight: 900; }
+.stat-l { font-size: 14rpx; color: #5a6178; letter-spacing: 4rpx; margin-top: 4rpx; }
+.ec1 { color: #e8783a; }
+.ec2 { color: #4a8fc2; }
+.ec3 { color: #d4a846; }
+.edg-disc { display: flex; flex-wrap: wrap; justify-content: center; margin: 16rpx 0; }
+.disc-tag { font-size: 18rpx; padding: 4rpx 14rpx; border: 1rpx solid rgba(212,168,70,.3); border-radius: 2rpx; color: #d4a846; margin-left: 10rpx; margin-bottom: 10rpx; }
+.disc-tag:first-child { margin-left: 0; }
+.restart-btn {
+  margin-top: 24rpx; background: transparent !important;
+  border: 2rpx solid #e8783a !important; border-radius: 4rpx !important;
+  padding: 16rpx 56rpx !important; color: #e8783a !important;
+  font-size: 24rpx !important; font-weight: 700 !important; letter-spacing: 4rpx;
+}
+
+/* 转场 */
+.trn {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 50; background: #0a0c14;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .5s;
+}
+.trn-on { opacity: 1; pointer-events: auto; }
+.trn-text { font-size: 28rpx; color: #6b7394; text-align: center; letter-spacing: 6rpx; line-height: 2; white-space: pre-line; }

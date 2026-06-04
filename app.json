@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "星际先锋",
+    "navigationBarBackgroundColor": "#0a0c14",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0a0c14"
+  },
+  "style": "v2"
+}

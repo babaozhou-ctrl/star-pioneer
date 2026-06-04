@@ -1,0 +1,9 @@
+﻿# WeChat dev private config
+project.private.config.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

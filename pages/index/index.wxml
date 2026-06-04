@@ -1,0 +1,221 @@
+<view class="game-container">
+  <image class="bg-img" wx:if="{{currentBg}}" src="{{currentBg}}" mode="aspectFill"></image>
+  <view class="bg-default" wx:if="{{!currentBg}}"></view>
+  <view class="overlay"></view>
+
+  <!-- HUD -->
+  <view class="hud" wx:if="{{showHud}}">
+    <view class="hud-item">
+      <view class="hud-label">STA</view>
+      <view class="hud-val stamina">{{stamina}}/{{maxStamina}}</view>
+    </view>
+    <view class="hud-item" wx:if="{{timeToFull}}">
+      <view class="hud-label">RECOVER</view>
+      <view class="hud-val recover">{{timeToFull}}</view>
+    </view>
+    <view class="hud-item">
+      <view class="hud-label">NRG</view>
+      <view class="hud-val energy">{{energy}}</view>
+    </view>
+    <view class="hud-item">
+      <view class="hud-label">SAN</view>
+      <view class="hud-val sanity">{{sanity}}</view>
+    </view>
+  </view>
+
+  <!-- 标题画面 -->
+  <view class="title-screen" wx:if="{{screen=='title'}}">
+    <view class="title-deco"></view>
+    <view class="title-text">星际先锋</view>
+    <view class="title-line"></view>
+    <view class="title-sub">STELLAR VANGUARD</view>
+    <view class="title-hint">对话驱动 · 天文科普 · 体力制探索</view>
+    <button class="start-btn" bindtap="startGame">开始探索</button>
+  </view>
+
+  <!-- 星图（散落式） -->
+  <view class="galaxy" wx:if="{{screen=='galaxy'}}">
+    <view class="galaxy-stars">
+      <view class="star-dot" wx:for="{{starDots}}" wx:key="index" style="top:{{item.top}}%;left:{{item.left}}%;animation-delay:{{item.delay}}s"></view>
+    </view>
+    <view class="galaxy-header">
+      <view class="galaxy-title">星 图</view>
+      <view class="galaxy-sub">STELLAR MAP</view>
+    </view>
+    <view class="galaxy-planets-scatter">
+      <view class="planet-orbit {{item.status}}" wx:for="{{planetList}}" wx:key="id" bindtap="onPlanetTap" data-id="{{item.id}}" data-status="{{item.status}}" style="top:{{item.posTop}};left:{{item.posLeft}}">
+        <view class="planet-visual">
+          <image class="planet-sphere" src="{{item.imgUrl}}" mode="aspectFill"></image>
+          <view class="planet-glow"></view>
+        </view>
+        <view class="planet-label-s">{{item.name}}</view>
+        <view class="planet-tag-s {{item.status}}">{{item.status=='available'?'可探索':item.status=='completed'?'已完成':'未解锁'}}</view>
+      </view>
+    </view>
+    <view class="galaxy-lore-btn" bindtap="onLoreTap">
+      <view class="lore-icon">📖</view>
+      <view class="lore-count">{{loreList.length}}</view>
+    </view>
+  </view>
+
+  <!-- 星球详情（沉浸式） -->
+  <view class="planet-detail" wx:if="{{screen=='planetdetail'}}">
+    <view class="planet-detail-bg"></view>
+    <view class="pd-dust">
+      <view class="pd-dust-dot" wx:for="{{dustDots}}" wx:key="index" style="top:{{item.top}}%;left:{{item.left}}%;animation-delay:{{item.delay}}s"></view>
+    </view>
+    <view class="pd-top">
+      <view class="pd-planet-name">{{planetInfo.name}}</view>
+      <view class="pd-planet-sub">{{planetInfo.subtitle}}</view>
+    </view>
+    <view class="pd-center">
+      <view class="pd-planet-ring"></view>
+      <image class="pd-planet-img" src="{{planetInfo.imgUrl}}" mode="aspectFill"></image>
+      <view class="pd-planet-glow"></view>
+    </view>
+    <view class="pd-right-panel">
+      <view class="pd-section-title">状态信息</view>
+      <view class="pd-status-item">
+        <view class="pd-status-label">探索度</view>
+        <view class="pd-status-val">{{planetInfo.progress}}%</view>
+      </view>
+      <view class="pd-status-item">
+        <view class="pd-status-label">危险度</view>
+        <view class="pd-status-val warn">{{planetInfo.danger}}</view>
+      </view>
+      <view class="pd-section-title" style="margin-top:24rpx;">成长 · 成就</view>
+      <view class="pd-achieve-item" wx:for="{{planetInfo.achievements}}" wx:key="index">
+        <view class="pd-achieve-star">★</view>
+        <view class="pd-achieve-text">{{item}}</view>
+      </view>
+      <view class="pd-achieve-hint" wx:if="{{planetInfo.achievements.length==0}}">探索星球解锁成就</view>
+    </view>
+    <view class="pd-left-options">
+      <view class="pd-option" wx:for="{{planetInfo.options}}" wx:key="index" bindtap="onPlanetOption" data-index="{{index}}">
+        <view class="pd-option-arrow">→</view>
+        <view class="pd-option-text">{{item.text}}</view>
+      </view>
+    </view>
+    <view class="pd-close" bindtap="onClosePlanetDetail">◂ 返回星图</view>
+  </view>
+
+  <!-- 星球信息（已完成） -->
+  <view class="planetinfo" wx:if="{{screen=='planetinfo'}}">
+    <image class="bg-img-full" src="{{currentBg}}" mode="aspectFill"></image>
+    <view class="planetinfo-overlay"></view>
+    <view class="planetinfo-content">
+      <view class="planetinfo-status">已完成探索</view>
+      <view class="planetinfo-actions">
+        <button class="action-btn" bindtap="onReExplore">再次探索</button>
+        <button class="action-btn secondary" bindtap="onBackGalaxy">返回星图</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 深空遗响 -->
+  <view class="lore-screen" wx:if="{{screen=='lore'}}">
+    <view class="lore-header">
+      <view class="lore-title">深空遗响</view>
+      <view class="lore-sub">DEEP SPACE ECHOES</view>
+    </view>
+    <view class="lore-close" bindtap="onBackGalaxy">◂ 返回星图</view>
+    <view class="lore-list" wx:if="{{!loreDetail}}">
+      <view class="lore-empty" wx:if="{{loreList.length==0}}">暂无已解锁的遗响\n探索星球可解锁更多</view>
+      <view class="lore-item" wx:for="{{loreList}}" wx:key="key" bindtap="onLoreItemTap" data-key="{{item.key}}">
+        <view class="lore-planet-tag">{{item.planet=='rust'?'锈蚀星':item.planet=='crystal'?'晶渊星':'寂语星'}}</view>
+        <view class="lore-item-title">{{item.title}}</view>
+        <view class="lore-arrow">▸</view>
+      </view>
+    </view>
+    <view class="lore-detail" wx:if="{{loreDetail}}">
+      <view class="lore-detail-planet">{{loreDetail.planet=='rust'?'锈蚀星':loreDetail.planet=='crystal'?'晶渊星':'寂语星'}}</view>
+      <view class="lore-detail-title">{{loreDetail.title}}</view>
+      <view class="lore-detail-text">{{loreDetail.text}}</view>
+      <view class="lore-back-btn" bindtap="onLoreClose">返回列表</view>
+    </view>
+  </view>
+
+  <!-- 对话 -->
+  <view class="scene" wx:if="{{screen=='dialog'}}" bindtap="onDialogTap">
+    <image class="char-left {{leftActive?'char-active':'char-dim'}}" wx:if="{{charLeft}}" src="{{charLeft}}" mode="aspectFit"></image>
+    <image class="char-right {{rightActive?'char-active':'char-dim'}}" wx:if="{{charRight}}" src="{{charRight}}" mode="aspectFit"></image>
+    <view class="dlg-bar">
+      <view class="dlg-name {{speakerClass}}" wx:if="{{speakerName}}">{{speakerName}}</view>
+      <view class="dlg-text">{{dialogText}}</view>
+      <view class="sci-box" wx:if="{{sciInfo}}">
+        <view class="sci-title">{{sciInfo.title}}</view>
+        <view class="sci-text">{{sciInfo.text}}</view>
+      </view>
+      <view class="dlg-hint">点击继续 ▸</view>
+    </view>
+  </view>
+
+  <!-- 选项 -->
+  <view class="scene" wx:if="{{screen=='choices'}}">
+    <view class="ch-prompt">选择行动</view>
+    <view class="ch-list">
+      <view class="ch-item" wx:for="{{choices}}" wx:key="index" bindtap="onChoice" data-index="{{index}}">
+        <view class="ch-order">{{index+1}}</view>
+        <view class="ch-body">
+          <view class="ch-text">{{item.text}}</view>
+          <view class="ch-cost">
+            <text class="cost-free" wx:if="{{item.cost==0}}">FREE</text>
+            <text class="cost-high" wx:elif="{{item.cost>=30}}">-{{item.cost}} STA</text>
+            <text class="cost-low" wx:else>-{{item.cost}} STA</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 探索（沉浸式） -->
+  <view class="explore" wx:if="{{screen=='map'}}">
+    <view class="explore-bg"></view>
+    <view class="explore-dust">
+      <view class="explore-dust-dot" wx:for="{{exploreDots}}" wx:key="index" style="top:{{item.top}}%;left:{{item.left}}%;animation-delay:{{item.delay}}s"></view>
+    </view>
+    <view class="explore-scanline"></view>
+    <view class="explore-header">
+      <view class="explore-name">{{explorePlanet.name}}</view>
+    </view>
+    <view class="explore-center">
+      <view class="explore-ring"></view>
+      <image class="explore-planet-img" src="{{explorePlanet.imgUrl}}" mode="aspectFill"></image>
+      <view class="explore-glow"></view>
+    </view>
+    <view class="explore-opts">
+      <view class="explore-opt {{item.locked?'locked':''}}" wx:if="{{!item.locked}}" wx:for="{{mapLocations}}" wx:key="id" bindtap="onLocTap" data-id="{{item.id}}">
+        <view class="explore-opt-icon">{{item.icon}}</view>
+        <view class="explore-opt-body">
+          <view class="explore-opt-name">{{item.name}}</view>
+          <view class="explore-opt-desc">{{item.desc}}</view>
+        </view>
+        <view class="explore-opt-go" wx:if="{{!item.locked}}">▸</view>
+        <view class="explore-opt-lk" wx:if="{{item.locked}}">LOCK</view>
+      </view>
+    </view>
+    <view class="explore-sta-bar">STA {{stamina}}/{{maxStamina}}</view>
+    <view class="explore-back" bindtap="onBackGalaxy">◂ 返回星图</view>
+  </view>
+
+  <!-- 结局 -->
+  <view class="edg" wx:if="{{screen=='ending'}}">
+    <view class="edg-label">RESULT</view>
+    <view class="edg-title">{{ending}}</view>
+    <view class="edg-text">{{endingText}}</view>
+    <view class="edg-stats">
+      <view class="stat"><view class="stat-v ec1">{{energy}}</view><view class="stat-l">NRG</view></view>
+      <view class="stat"><view class="stat-v ec2">{{sanity}}</view><view class="stat-l">SAN</view></view>
+      <view class="stat"><view class="stat-v ec3">{{signal}}</view><view class="stat-l">SIG</view></view>
+    </view>
+    <view class="edg-disc">
+      <view class="disc-tag" wx:for="{{discoveries}}" wx:key="index">{{item}}</view>
+    </view>
+    <button class="restart-btn" bindtap="onBackGalaxy">返回星图</button>
+  </view>
+
+  <!-- 转场 -->
+  <view class="trn {{transitioning?'trn-on':''}}">
+    <view class="trn-text">{{transitionText}}</view>
+  </view>
+</view>
